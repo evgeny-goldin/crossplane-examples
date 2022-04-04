@@ -1,0 +1,39 @@
+apiVersion: rds.aws.crossplane.io/v1alpha1
+kind: DBClusterParameterGroup
+metadata:
+  name: example-clusterparametergroup
+spec:
+  forProvider:
+    region: us-west-2
+    # aws rds describe-db-engine-versions --engine aurora-postgresql --query "DBEngineVersions[-1].DBParameterGroupFamily"
+    dbParameterGroupFamily: aurora-postgresql13
+    description: example
+---
+apiVersion: rds.aws.crossplane.io/v1alpha1
+kind: DBCluster
+metadata:
+  name: example-postgres-aurora
+spec:
+  forProvider:
+    region: us-west-2
+    engine: aurora-postgresql
+    databaseName: auroradb
+    skipFinalSnapshot: true
+    dbClusterParameterGroupName: example-clusterparametergroup
+    masterUsername: masteruser
+    masterUserPasswordSecretRef:
+      name: example-aurora-mysql-cluster
+      namespace: crossplane-system
+      key: password
+  writeConnectionSecretToRef:
+    name: example-aurora-mysql-cluster
+    namespace: default
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: example-aurora-mysql-cluster
+  namespace: crossplane-system
+type: Opaque
+data:
+  password: dGVzdFBhc3N3b3JkITEyMw== # testPassword!123

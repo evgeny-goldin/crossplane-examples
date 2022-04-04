@@ -1,0 +1,49 @@
+apiVersion: rds.aws.crossplane.io/v1alpha1
+kind: DBClusterParameterGroup
+metadata:
+  name: example-clusterparametergroup
+spec:
+  forProvider:
+    region: us-east-1
+    dbParameterGroupFamily: aurora-mysql5.7
+    description: example
+    tags:
+      - key: created-by
+        value: example
+    parameters:
+      - parameterName: performance_schema
+        parameterValue: '1'
+        applyMethod: pending-reboot
+      - parameterName: max_connections
+        parameterValue: '500'
+        applyMethod: immediate
+---
+apiVersion: rds.aws.crossplane.io/v1alpha1
+kind: DBCluster
+metadata:
+  name: example-aurora-mysql-cluster
+spec:
+  forProvider:
+    region: us-east-1
+    engine: aurora-mysql
+    masterUsername: admin
+    masterUserPasswordSecretRef:
+      name: example-aurora-mysql-cluster
+      namespace: crossplane-system
+      key: password
+    databaseName: auroradb
+    skipFinalSnapshot: true
+    dbClusterParameterGroupName: example-clusterparametergroup
+    applyImmediately: true
+  writeConnectionSecretToRef:
+    name: example-aurora-mysql-cluster
+    namespace: default
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: example-aurora-mysql-cluster
+  namespace: crossplane-system
+type: Opaque
+data:
+  password: dGVzdFBhc3N3b3JkITEyMw== # testPassword!123
