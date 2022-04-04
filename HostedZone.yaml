@@ -1,0 +1,8 @@
+apiVersion: route53.aws.crossplane.io/v1alpha1
+kind: HostedZone
+metadata:
+  name: test.akuity.io
+  namespace: default
+spec:
+  forProvider:
+    name: test.akuity.io
